@@ -1,0 +1,15 @@
+package com.example.filme;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class FilmeApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(FilmeApplication.class, args);
+	}
+
+}
+
+// FAZER O ERRO APARECER A COLUNA QUE ESTÁ COM ERRO E A MENSAGEM
