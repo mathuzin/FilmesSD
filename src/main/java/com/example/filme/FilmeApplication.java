@@ -11,5 +11,3 @@ public class FilmeApplication {
 	}
 
 }
-
-// FAZER O ERRO APARECER A COLUNA QUE ESTÁ COM ERRO E A MENSAGEM
