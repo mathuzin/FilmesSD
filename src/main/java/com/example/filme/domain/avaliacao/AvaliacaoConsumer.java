@@ -1,3 +1,14 @@
+package com.example.filme.domain.avaliacao;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.Message;
+
 @Service
 public class AvaliacaoConsumer {
 
@@ -25,7 +36,7 @@ public class AvaliacaoConsumer {
 
             try {
                 Avaliacao Avaliacao = objectMapper.readValue(msg.body(), Avaliacao.class);
-                System.out.println("Avaliacao recebido: " + Avaliacao.getTitulo());
+                System.out.println("Avaliacao recebido: " + Avaliacao.getDs_avaliacao());
 
                 // PROCESSA O Avaliacao (sua lógica)
                 processarAvaliacao(Avaliacao);

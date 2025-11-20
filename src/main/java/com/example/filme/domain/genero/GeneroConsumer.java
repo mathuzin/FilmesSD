@@ -1,3 +1,14 @@
+package com.example.filme.domain.genero;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.Message;
+
 @Service
 public class GeneroConsumer {
 
@@ -25,7 +36,7 @@ public class GeneroConsumer {
 
             try {
                 Genero Genero = objectMapper.readValue(msg.body(), Genero.class);
-                System.out.println("Genero recebido: " + Genero.getTitulo());
+                System.out.println("Genero recebido: " + Genero.getNome());
 
                 // PROCESSA O Genero (sua lógica)
                 processarGenero(Genero);

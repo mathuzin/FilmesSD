@@ -1,3 +1,14 @@
+package com.example.filme.domain.pessoa;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.Message;
+
 @Service
 public class PessoaConsumer {
 
@@ -25,7 +36,7 @@ public class PessoaConsumer {
 
             try {
                 Pessoa Pessoa = objectMapper.readValue(msg.body(), Pessoa.class);
-                System.out.println("Pessoa recebido: " + Pessoa.getTitulo());
+                System.out.println("Pessoa recebido: " + Pessoa.getNome());
 
                 // PROCESSA O Pessoa (sua lógica)
                 processarPessoa(Pessoa);

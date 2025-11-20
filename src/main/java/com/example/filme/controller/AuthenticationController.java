@@ -4,7 +4,6 @@ import com.example.filme.domain.pessoa.Pessoa;
 import com.example.filme.domain.pessoa.PessoaService;
 import com.example.filme.domain.pessoa.Tipo;
 import com.example.filme.domain.pessoa.dtos.DadosCadastroPessoa;
-import com.example.filme.domain.pessoa.dtos.DadosDetalhamentoPessoa;
 import com.example.filme.domain.usuario.Usuario;
 import com.example.filme.domain.usuario.UsuarioRepository;
 import com.example.filme.domain.usuario.dtos.AthenticationDTO;
