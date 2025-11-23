@@ -34,7 +34,6 @@ public class AvaliacaoService {
     @Autowired
     private AvaliacaoRepository avaliacaoRepository;
 
-    // Faz uma nova avaliação para um filme
     @Transactional
     public DadosDetalhamentoAvaliacao avaliar(@Valid DadosCadastroAvaliacao dados) {
         if (dados == null) {
@@ -65,7 +64,6 @@ public class AvaliacaoService {
     }
 
 
-    // Lista todas as avaliações relacionada a um usuário
     public List<DadosDetalhamentoAvaliacao> listarAvaliacoesDeUmUsuario(Integer id_usuario) {
 
         if (id_usuario == null) {
@@ -82,7 +80,6 @@ public class AvaliacaoService {
     }
 
 
-    // Lista todas as avaliações relacionada a um filme
     public List<DadosDetalhamentoAvaliacao> listarAvaliacoesFilme(Integer id_filme) {
 
         if (id_filme == null) {
@@ -99,7 +96,6 @@ public class AvaliacaoService {
     }
 
 
-    // Lista a avaliação feita pelo usuário para um filme
     public DadosDetalhamentoAvaliacao listarAvaliacaoDeUmFilme(Integer id_filme, Integer id_usuario) {
 
         if (id_filme == null) {
@@ -125,7 +121,6 @@ public class AvaliacaoService {
 
     }
 
-    // Atualiza uma avaliação
     @Transactional
     public DadosDetalhamentoAvaliacao atualizarAvaliacao(@Valid DadosAlterarAvaliacao dados) {
 
@@ -155,7 +150,6 @@ public class AvaliacaoService {
 
     }
 
-    // Deleta uma avaliação
     @Transactional
     public void deletarAvaliacao(Integer idAvaliacao) {
 

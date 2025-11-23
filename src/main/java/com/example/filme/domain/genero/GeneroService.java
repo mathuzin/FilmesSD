@@ -25,7 +25,6 @@ public class GeneroService {
     @Autowired
     private GeneroRepository generoRepository;
 
-    // Adiciona um gênero ao banco de dados
     @Transactional
     public DadosDetalhamentoGenero adicionarGenero(@Valid DadosCadastrarGenero dados) {
 
@@ -43,7 +42,6 @@ public class GeneroService {
 
     }
 
-    // Importa os gêneros da API para o banco de dados
     @Transactional
     public List<DadosDetalhamentoGenero> importarGenerosDaApi() {
         List<DadosDetalhamentoGenero> generosAdicionados = new ArrayList<>();
@@ -71,7 +69,6 @@ public class GeneroService {
                 .toList();
     }
 
-    // Edita um gênero
     @Transactional
     public DadosDetalhamentoGenero editarGenero(@Valid DadosEditarGenero dados) {
 

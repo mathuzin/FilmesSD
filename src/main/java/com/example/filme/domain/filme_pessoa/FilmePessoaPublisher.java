@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 
+import java.util.Map;
+
 @Service
 public class FilmePessoaPublisher {
 
@@ -20,9 +22,9 @@ public class FilmePessoaPublisher {
         this.objectMapper = objectMapper;
     }
 
-    public void publicarEventoFilmePessoa(Object evento) {
+    private void enviar(Object payload) {
         try {
-            String message = objectMapper.writeValueAsString(evento);
+            String message = objectMapper.writeValueAsString(payload);
 
             snsClient.publish(PublishRequest.builder()
                     .topicArn(topicArn)
@@ -32,5 +34,27 @@ public class FilmePessoaPublisher {
         } catch (Exception e) {
             throw new RuntimeException("Erro ao enviar mensagem para SNS", e);
         }
+    }
+
+    public void publicarCadastrar(Object dadosCadastro) {
+        enviar(Map.of(
+                "acao", "CADASTRAR",
+                "dados", dadosCadastro
+        ));
+    }
+
+    public void publicarAlterar(Object dadosAlteracao) {
+        enviar(Map.of(
+                "acao", "ALTERAR",
+                "dados", dadosAlteracao
+        ));
+    }
+
+    public void publicarDeletar(Integer idPessoa, Integer idFilme) {
+        enviar(Map.of(
+                "acao", "DELETAR",
+                "idPessoa", idPessoa,
+                "idFilme", idFilme
+        ));
     }
 }

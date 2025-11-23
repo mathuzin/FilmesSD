@@ -23,19 +23,16 @@ public class UsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // Lista todos os usuários
     public Page<DadosDetalhamentoUsuario> listarTodosUsuarios(Pageable paginacao) {
         return usuarioRepository.findAll(paginacao)
                 .map(DadosDetalhamentoUsuario::new);
     }
 
-    // Lista todos os usuários ativos
     public Page<DadosDetalhamentoUsuario> listarTodosUsuariosAtivos(Pageable paginacao) {
         return usuarioRepository.findByAtivoTrue(paginacao)
                 .map(DadosDetalhamentoUsuario::new);
     }
 
-    // Busca um usuário pelo ID
     public DadosDetalhamentoUsuario buscarUsuario(Integer idUsuario) {
         if (idUsuario == null) {
             throw new UsuarioBadRequestException("Id do usuário não pode ser nulo.");
@@ -47,7 +44,6 @@ public class UsuarioService {
         return new DadosDetalhamentoUsuario(usuario);
     }
 
-    // Edita as informações de um usuário
     @Transactional
     public DadosDetalhamentoUsuario editarUsuario(DadosEditarUsuario dados) {
 
@@ -78,7 +74,6 @@ public class UsuarioService {
 
     }
 
-    // Desativa um usuário
     @Transactional
     public void desativarUsuario(Integer idUsuario) {
         if (idUsuario == null) {

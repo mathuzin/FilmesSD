@@ -44,7 +44,6 @@ public class FilmeService {
     @Autowired
     private FilmeRepository filmeRepository;
 
-    // Cria um filme manualmente
     @Transactional
     public DadosDetalhamentoFilme cadastrarFilme(@Valid DadosCadastrarFilme dados) {
         if (dados == null) {
@@ -62,14 +61,12 @@ public class FilmeService {
         return new DadosDetalhamentoFilme(filme);
     }
 
-    // Lista todos os filmes do banco de dados
     public List<DadosDetalhamentoFilme> listarTodosFilmes() {
         return filmeRepository.findAll().stream()
                 .map(DadosDetalhamentoFilme::new)
                 .toList();
     }
 
-    // Lista um filme específico
     public DadosDetalhamentoFilme listarFilme(Integer idFilme) {
         if (idFilme == null) {
             throw new FilmeBadRequestException("ID do filme não pode ser nulo");
@@ -81,7 +78,6 @@ public class FilmeService {
         return new DadosDetalhamentoFilme(filme);
     }
 
-    // Altera informações de um filme
     @Transactional
     public DadosDetalhamentoFilme alterarFilme(@Valid DadosAlterarFilme dados) {
         if (dados == null) {
@@ -118,7 +114,6 @@ public class FilmeService {
         return new DadosDetalhamentoFilme(filmeAlterado);
     }
 
-    // Recomenda filmes para um usuário de acordo com as avaliações feitas
     public List<DadosDetalhamentoFilme> filmesRecomendadosParaUsuario(Integer idUsuario) {
         if (idUsuario == null) {
             throw new UsuarioBadRequestException("ID de usuário inválido.");
@@ -134,7 +129,6 @@ public class FilmeService {
     }
 
 
-    // Atualiza a média de popularidade do filme
     @Transactional
     public void atualizarPopularidade(Integer idFilme) {
         if (idFilme == null) {
@@ -151,7 +145,6 @@ public class FilmeService {
         filmeRepository.save(filme);
     }
 
-    // Importa filmes da API para o banco de dados
     @Transactional
     public List<DadosDetalhamentoFilme> importarFilmesDaApi(int pagina) {
         if (pagina < 0) {

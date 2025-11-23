@@ -16,7 +16,6 @@ public class PessoaService {
     @Autowired
     private PessoaRepository pessoaRepository;
 
-    // Cadastra uma pessoa
     @Transactional
     public Pessoa cadastrarPessoa(@Valid DadosCadastroPessoa dados) {
         if (dados == null) {
@@ -27,13 +26,11 @@ public class PessoaService {
         return pessoaRepository.save(pessoa);
     }
 
-    // Lista todas as pessoas no banco de dados
     public Page<DadosDetalhamentoPessoa> listarTodasAsPessoas(Pageable paginacao) {
         return pessoaRepository.findAll(paginacao)
                 .map(DadosDetalhamentoPessoa::new);
     }
 
-    // Busca uma pessoa específica do banco de dados
     public DadosDetalhamentoPessoa listarPessoa(Integer idPessoa) {
         if (idPessoa == null) {
             throw new PessoaBadRequestException("ID não pode ser nulo.");
@@ -45,7 +42,6 @@ public class PessoaService {
         return new DadosDetalhamentoPessoa(pessoa);
     }
 
-    // Altera uma pessoa do banco de dados
     @Transactional
     public DadosDetalhamentoPessoa alterarPessoa(@Valid DadosAlterarPessoa dados) {
         if (dados == null) {

@@ -1,10 +1,14 @@
 package com.example.filme.domain.pessoa;
 
+import com.example.filme.domain.pessoa.dtos.DadosCadastroPessoa;
+import com.example.filme.domain.pessoa.dtos.DadosAlterarPessoa;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
+
+import java.util.Map;
 
 @Service
 public class PessoaPublisher {
@@ -20,9 +24,9 @@ public class PessoaPublisher {
         this.objectMapper = objectMapper;
     }
 
-    public void publicarEventoPessoa(Object evento) {
+    private void enviar(Object payload) {
         try {
-            String message = objectMapper.writeValueAsString(evento);
+            String message = objectMapper.writeValueAsString(payload);
 
             snsClient.publish(PublishRequest.builder()
                     .topicArn(topicArn)
@@ -32,5 +36,19 @@ public class PessoaPublisher {
         } catch (Exception e) {
             throw new RuntimeException("Erro ao enviar mensagem para SNS", e);
         }
+    }
+
+    public void publicarAdicionar(DadosCadastroPessoa dados) {
+        enviar(Map.of(
+                "acao", "ADICIONAR",
+                "dados", dados
+        ));
+    }
+
+    public void publicarEditar(DadosAlterarPessoa dados) {
+        enviar(Map.of(
+                "acao", "EDITAR",
+                "dados", dados
+        ));
     }
 }
