@@ -12,7 +12,7 @@ public class FilmePessoaPublisher {
     private final SnsClient snsClient;
     private final ObjectMapper objectMapper;
 
-    @Value("${aws.sns.filmePessoa-topic-arn}")
+    @Value("${aws.sns.app-topic-arn}")
     private String topicArn;
 
     public FilmePessoaPublisher(SnsClient snsClient, ObjectMapper objectMapper) {

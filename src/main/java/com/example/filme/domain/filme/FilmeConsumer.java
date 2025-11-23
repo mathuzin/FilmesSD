@@ -1,5 +1,8 @@
 package com.example.filme.domain.filme;
 
+import com.example.filme.domain.filme.dtos.DadosAlterarFilme;
+import com.example.filme.domain.filme.dtos.DadosCadastrarFilme;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,46 +17,71 @@ public class FilmeConsumer {
 
     private final SqsClient sqsClient;
     private final ObjectMapper objectMapper;
+    private final FilmeService filmeService;
 
-    @Value("${aws.sqs.filme-queue}")
+    @Value("${aws.sqs.queue-url}")
     private String queueUrl;
 
-    public FilmeConsumer(SqsClient sqsClient, ObjectMapper objectMapper) {
+    public FilmeConsumer(SqsClient sqsClient, ObjectMapper objectMapper, FilmeService filmeService) {
         this.sqsClient = sqsClient;
         this.objectMapper = objectMapper;
+        this.filmeService = filmeService;
     }
 
-    @Scheduled(fixedDelay = 2000) // a cada 2 segundos
+    @Scheduled(fixedDelay = 2000)
     public void consumir() {
+
         ReceiveMessageRequest request = ReceiveMessageRequest.builder()
                 .queueUrl(queueUrl)
                 .maxNumberOfMessages(10)
+                .visibilityTimeout(30)
                 .build();
 
         var messages = sqsClient.receiveMessage(request).messages();
 
         for (Message msg : messages) {
-
             try {
-                Filme filme = objectMapper.readValue(msg.body(), Filme.class);
-                System.out.println("Filme recebido: " + filme.getNome());
+                JsonNode json = objectMapper.readTree(msg.body());
+                String acao = json.get("acao").asText();
 
-                // PROCESSA O FILME (sua lógica)
-                processarFilme(filme);
+                switch (acao) {
+
+                    case "CADASTRAR" -> {
+                        var dados = objectMapper.treeToValue(json.get("dados"), DadosCadastrarFilme.class);
+                        filmeService.cadastrarFilme(dados);
+                        System.out.println("Filme cadastrado via SQS: " + dados.nome());
+                    }
+
+                    case "ALTERAR" -> {
+                        var dados = objectMapper.treeToValue(json.get("dados"), DadosAlterarFilme.class);
+                        filmeService.alterarFilme(dados);
+                        System.out.println("Filme alterado via SQS: " + dados.id());
+                    }
+
+                    case "ATUALIZAR_POPULARIDADE" -> {
+                        Integer idFilme = json.get("idFilme").asInt();
+                        filmeService.atualizarPopularidade(idFilme);
+                        System.out.println("Popularidade atualizada via SQS: " + idFilme);
+                    }
+
+                    case "IMPORTAR_DA_API" -> {
+                        Integer pagina = json.get("pagina").asInt();
+                        filmeService.importarFilmesDaApi(pagina);
+                        System.out.println("Importação da API via SQS — página: " + pagina);
+                    }
+
+                    default -> System.out.println("Ação inválida recebida: " + acao);
+                }
+
+                sqsClient.deleteMessage(DeleteMessageRequest.builder()
+                        .queueUrl(queueUrl)
+                        .receiptHandle(msg.receiptHandle())
+                        .build());
 
             } catch (Exception e) {
+                System.err.println("Erro ao processar mensagem SQS:");
                 e.printStackTrace();
             }
-
-            // apaga da fila depois de processar
-            sqsClient.deleteMessage(DeleteMessageRequest.builder()
-                    .queueUrl(queueUrl)
-                    .receiptHandle(msg.receiptHandle())
-                    .build());
         }
-    }
-
-    private void processarFilme(Filme filme) {
-        // Sua regra de negócio aqui
     }
 }

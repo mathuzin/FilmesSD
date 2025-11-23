@@ -12,7 +12,7 @@ public class GeneroPublisher {
     private final SnsClient snsClient;
     private final ObjectMapper objectMapper;
 
-    @Value("${aws.sns.genero-topic-arn}")
+    @Value("${aws.sns.app-topic-arn}")
     private String topicArn;
 
     public GeneroPublisher(SnsClient snsClient, ObjectMapper objectMapper) {

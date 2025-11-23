@@ -15,7 +15,6 @@ public class AwsConfig {
         return SqsClient.builder()
                 .region(Region.of("sa-east-1"))
                 .credentialsProvider(DefaultCredentialsProvider.create())
-                //.credentialsProvider(ProfileCredentialsProvider.create("default"))
                 .build();
     }
 

@@ -33,6 +33,11 @@ public class SecurityFilter extends OncePerRequestFilter {
             return;
         }
 
+        if (path.startsWith("/bully")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         var token = this.recoverToken(request);
 
         if (token != null) {

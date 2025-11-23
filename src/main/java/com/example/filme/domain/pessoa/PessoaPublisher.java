@@ -12,7 +12,7 @@ public class PessoaPublisher {
     private final SnsClient snsClient;
     private final ObjectMapper objectMapper;
 
-    @Value("${aws.sns.pessoa-topic-arn}")
+    @Value("${aws.sns.app-topic-arn}")
     private String topicArn;
 
     public PessoaPublisher(SnsClient snsClient, ObjectMapper objectMapper) {

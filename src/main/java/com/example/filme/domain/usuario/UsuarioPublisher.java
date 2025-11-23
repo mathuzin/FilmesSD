@@ -12,7 +12,7 @@ public class UsuarioPublisher {
     private final SnsClient snsClient;
     private final ObjectMapper objectMapper;
 
-    @Value("${aws.sns.usuario-topic-arn}")
+    @Value("${aws.sns.app-topic-arn}")
     private String topicArn;
 
     public UsuarioPublisher(SnsClient snsClient, ObjectMapper objectMapper) {

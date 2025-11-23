@@ -8,6 +8,6 @@ public class FilmeQueueListener {
 
     @SqsListener("${aws.sqs.queue-url}")
     public void receberMensagem(String mensagem) {
-        System.out.println("📩 Mensagem recebida da fila: " + mensagem);
+        System.out.println("Mensagem recebida da fila: " + mensagem);
     }
 }
