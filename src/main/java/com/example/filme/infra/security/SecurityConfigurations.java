@@ -28,7 +28,11 @@ public class SecurityConfigurations {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
 
+                        // Permissão - Bully
                         .requestMatchers("/bully/**").permitAll()
+
+                        // Permissão - AWS
+                        .requestMatchers(HttpMethod.POST, "/aws/**").permitAll()
 
                         // Permições - Authentication
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
@@ -47,7 +51,7 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/usuario/desativar/{id}").hasRole("ADM")
 
                         // Permições - Gênero
-                        .requestMatchers(HttpMethod.POST, "/genero/add").hasRole("ADM")
+                        .requestMatchers(HttpMethod.POST, "/genero/add").permitAll()
                         .requestMatchers(HttpMethod.POST, "/genero/add/api").hasRole("ADM")
                         .requestMatchers(HttpMethod.PUT, "/genero").hasRole("ADM")
 

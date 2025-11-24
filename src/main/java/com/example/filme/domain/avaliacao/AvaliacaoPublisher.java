@@ -1,81 +1,86 @@
 package com.example.filme.domain.avaliacao;
 
+import com.example.filme.domain.avaliacao.dtos.DadosAlterarAvaliacao;
+import com.example.filme.domain.avaliacao.dtos.DadosCadastroAvaliacao;
+import com.example.filme.infra.aws.MensagemPublisher;
+import com.example.filme.infra.aws.dtos.AcaoMensagemDTO;
+import com.example.filme.infra.aws.enums.AcaoMensagem;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.PublishRequest;
-
-import java.util.Map;
 
 @Service
 public class AvaliacaoPublisher {
 
-    private final SnsClient snsClient;
-    private final ObjectMapper objectMapper;
+    private final MensagemPublisher publisher;
+    private final ObjectMapper mapper = new ObjectMapper();
 
-    @Value("${aws.sns.app-topic-arn}")
-    private String topicArn;
-
-    public AvaliacaoPublisher(SnsClient snsClient, ObjectMapper objectMapper) {
-        this.snsClient = snsClient;
-        this.objectMapper = objectMapper;
+    public AvaliacaoPublisher(MensagemPublisher publisher) {
+        this.publisher = publisher;
     }
 
-    private void enviar(Object payload) {
-        try {
-            String message = objectMapper.writeValueAsString(payload);
-
-            snsClient.publish(PublishRequest.builder()
-                    .topicArn(topicArn)
-                    .message(message)
-                    .build());
-
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao enviar mensagem para SNS", e);
-        }
-    }
-
-    public void publicarCadastrar(Object dados) {
-        enviar(Map.of(
-                "acao", "CADASTRAR",
-                "dados", dados
+    public void publicarCadastrar(DadosCadastroAvaliacao dados) {
+        publisher.enviar(new AcaoMensagemDTO(
+                "AVALIACAO",
+                AcaoMensagem.CADASTRAR,
+                mapper.valueToTree(dados),
+                null,
+                null,
+                null
         ));
     }
 
-    public void publicarAlterar(Object dados) {
-        enviar(Map.of(
-                "acao", "ALTERAR",
-                "dados", dados
+    public void publicarAlterar(DadosAlterarAvaliacao dados) {
+        publisher.enviar(new AcaoMensagemDTO(
+                "AVALIACAO",
+                AcaoMensagem.ALTERAR,
+                mapper.valueToTree(dados),
+                null,
+                null,
+                null
         ));
     }
 
     public void publicarDeletar(Integer idAvaliacao) {
-        enviar(Map.of(
-                "acao", "DELETAR",
-                "idAvaliacao", idAvaliacao
+        publisher.enviar(new AcaoMensagemDTO(
+                "AVALIACAO",
+                AcaoMensagem.DELETAR,
+                null,
+                idAvaliacao,
+                null,
+                null
         ));
     }
 
     public void publicarListarUsuario(Integer idUsuario) {
-        enviar(Map.of(
-                "acao", "LISTAR_USUARIO",
-                "idUsuario", idUsuario
+        publisher.enviar(new AcaoMensagemDTO(
+                "AVALIACAO",
+                AcaoMensagem.LISTAR_USUARIO,
+                null,
+                null,
+                idUsuario,
+                null
         ));
     }
 
     public void publicarListarFilme(Integer idFilme) {
-        enviar(Map.of(
-                "acao", "LISTAR_FILME",
-                "idFilme", idFilme
+        publisher.enviar(new AcaoMensagemDTO(
+                "AVALIACAO",
+                AcaoMensagem.LISTAR_FILME,
+                null,
+                idFilme,
+                null,
+                null
         ));
     }
 
     public void publicarListarUnica(Integer idFilme, Integer idUsuario) {
-        enviar(Map.of(
-                "acao", "LISTAR_UNICA",
-                "idFilme", idFilme,
-                "idUsuario", idUsuario
+        publisher.enviar(new AcaoMensagemDTO(
+                "AVALIACAO",
+                AcaoMensagem.LISTAR_UNICA,
+                null,
+                idFilme,
+                idUsuario,
+                null
         ));
     }
 }

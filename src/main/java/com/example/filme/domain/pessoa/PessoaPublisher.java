@@ -2,53 +2,41 @@ package com.example.filme.domain.pessoa;
 
 import com.example.filme.domain.pessoa.dtos.DadosCadastroPessoa;
 import com.example.filme.domain.pessoa.dtos.DadosAlterarPessoa;
+import com.example.filme.infra.aws.MensagemPublisher;
+import com.example.filme.infra.aws.dtos.AcaoMensagemDTO;
+import com.example.filme.infra.aws.enums.AcaoMensagem;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.PublishRequest;
-
-import java.util.Map;
 
 @Service
 public class PessoaPublisher {
 
-    private final SnsClient snsClient;
-    private final ObjectMapper objectMapper;
+    private final MensagemPublisher publisher;
+    private final ObjectMapper mapper = new ObjectMapper();
 
-    @Value("${aws.sns.app-topic-arn}")
-    private String topicArn;
-
-    public PessoaPublisher(SnsClient snsClient, ObjectMapper objectMapper) {
-        this.snsClient = snsClient;
-        this.objectMapper = objectMapper;
-    }
-
-    private void enviar(Object payload) {
-        try {
-            String message = objectMapper.writeValueAsString(payload);
-
-            snsClient.publish(PublishRequest.builder()
-                    .topicArn(topicArn)
-                    .message(message)
-                    .build());
-
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao enviar mensagem para SNS", e);
-        }
+    public PessoaPublisher(MensagemPublisher publisher) {
+        this.publisher = publisher;
     }
 
     public void publicarAdicionar(DadosCadastroPessoa dados) {
-        enviar(Map.of(
-                "acao", "ADICIONAR",
-                "dados", dados
+        publisher.enviar(new AcaoMensagemDTO(
+                "PESSOA",
+                AcaoMensagem.CADASTRAR,
+                mapper.valueToTree(dados),
+                null,
+                null,
+                null
         ));
     }
 
     public void publicarEditar(DadosAlterarPessoa dados) {
-        enviar(Map.of(
-                "acao", "EDITAR",
-                "dados", dados
+        publisher.enviar(new AcaoMensagemDTO(
+                "PESSOA",
+                AcaoMensagem.EDITAR,
+                mapper.valueToTree(dados),
+                null,
+                null,
+                null
         ));
     }
 }

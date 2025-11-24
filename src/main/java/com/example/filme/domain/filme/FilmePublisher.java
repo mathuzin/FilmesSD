@@ -1,66 +1,64 @@
 package com.example.filme.domain.filme;
 
+import com.example.filme.domain.filme.dtos.DadosAlterarFilme;
+import com.example.filme.domain.filme.dtos.DadosCadastrarFilme;
+import com.example.filme.infra.aws.MensagemPublisher;
+import com.example.filme.infra.aws.dtos.AcaoMensagemDTO;
+import com.example.filme.infra.aws.enums.AcaoMensagem;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.PublishRequest;
-
-import java.util.Map;
 
 @Service
 public class FilmePublisher {
 
-    private final SnsClient snsClient;
-    private final ObjectMapper objectMapper;
+    private final MensagemPublisher publisher;
+    private final ObjectMapper mapper = new ObjectMapper();
 
-    @Value("${aws.sns.app-topic-arn}")
-    private String topicArn;
-
-    public FilmePublisher(SnsClient snsClient, ObjectMapper objectMapper) {
-        this.snsClient = snsClient;
-        this.objectMapper = objectMapper;
+    public FilmePublisher(MensagemPublisher publisher) {
+        this.publisher = publisher;
     }
 
-    private void enviar(Object payload) {
-        try {
-            String message = objectMapper.writeValueAsString(payload);
-
-            snsClient.publish(PublishRequest.builder()
-                    .topicArn(topicArn)
-                    .message(message)
-                    .build());
-
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao enviar mensagem para SNS", e);
-        }
-    }
-
-    public void publicarCadastrar(Object dados) {
-        enviar(Map.of(
-                "acao", "CADASTRAR",
-                "dados", dados
+    public void publicarCadastrar(DadosCadastrarFilme dados) {
+        publisher.enviar(new AcaoMensagemDTO(
+                "FILME",
+                AcaoMensagem.CADASTRAR,
+                mapper.valueToTree(dados),
+                null,
+                null,
+                null
         ));
     }
 
-    public void publicarAlterar(Object dados) {
-        enviar(Map.of(
-                "acao", "ALTERAR",
-                "dados", dados
+    public void publicarAlterar(DadosAlterarFilme dados) {
+        publisher.enviar(new AcaoMensagemDTO(
+                "FILME",
+                AcaoMensagem.ALTERAR,
+                mapper.valueToTree(dados),
+                dados.id(),
+                null,
+                null
         ));
     }
 
     public void publicarAtualizarPopularidade(Integer idFilme) {
-        enviar(Map.of(
-                "acao", "ATUALIZAR_POPULARIDADE",
-                "idFilme", idFilme
+        publisher.enviar(new AcaoMensagemDTO(
+                "FILME",
+                AcaoMensagem.ATUALIZAR_POPULARIDADE,
+                null,
+                idFilme,
+                null,
+                null
         ));
     }
 
     public void publicarImportarDaApi(Integer pagina) {
-        enviar(Map.of(
-                "acao", "IMPORTAR_DA_API",
-                "pagina", pagina
+        publisher.enviar(new AcaoMensagemDTO(
+                "FILME",
+                AcaoMensagem.IMPORTAR_DA_API,
+                mapper.valueToTree(pagina),
+                null,
+                null,
+                null
         ));
     }
 }
