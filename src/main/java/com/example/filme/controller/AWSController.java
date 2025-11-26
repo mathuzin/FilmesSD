@@ -1,22 +1,24 @@
 package com.example.filme.controller;
 
+import com.example.filme.domain.avaliacao.AvaliacaoPublisher;
 import com.example.filme.domain.avaliacao.dtos.DadosAlterarAvaliacao;
 import com.example.filme.domain.avaliacao.dtos.DadosCadastroAvaliacao;
+import com.example.filme.domain.filme.FilmePublisher;
 import com.example.filme.domain.filme.dtos.DadosAlterarFilme;
 import com.example.filme.domain.filme.dtos.DadosCadastrarFilme;
+import com.example.filme.domain.filme_pessoa.FilmePessoaPublisher;
 import com.example.filme.domain.filme_pessoa.dtos.DadosAlterarFilmePessoa;
 import com.example.filme.domain.filme_pessoa.dtos.DadosCadastroFilmePessoa;
+import com.example.filme.domain.genero.GeneroPublisher;
 import com.example.filme.domain.genero.dtos.DadosCadastrarGenero;
 import com.example.filme.domain.genero.dtos.DadosEditarGenero;
+import com.example.filme.domain.pessoa.PessoaPublisher;
 import com.example.filme.domain.pessoa.dtos.DadosAlterarPessoa;
 import com.example.filme.domain.pessoa.dtos.DadosCadastroPessoa;
+import com.example.filme.domain.usuario.UsuarioPublisher;
 import com.example.filme.domain.usuario.dtos.DadosCadastrarUsuario;
 import com.example.filme.domain.usuario.dtos.DadosEditarUsuario;
-import com.example.filme.infra.aws.MensagemSqsService;
-import com.example.filme.infra.aws.dtos.AcaoMensagemDTO;
-import com.example.filme.infra.aws.enums.AcaoMensagem;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
+
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,13 +29,28 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("aws")
 public class AWSController {
 
-    private final MensagemSqsService mensagemSqsService;
-    private final ObjectMapper mapper;
+    private final FilmePublisher filmePublisher;
+    private final PessoaPublisher pessoaPublisher;
+    private final GeneroPublisher generoPublisher;
+    private final AvaliacaoPublisher avaliacaoPublisher;
+    private final FilmePessoaPublisher filmePessoaPublisher;
+    private final UsuarioPublisher usuarioPublisher;
 
     @Autowired
-    public AWSController(MensagemSqsService mensagemSqsService, ObjectMapper mapper) {
-        this.mensagemSqsService = mensagemSqsService;
-        this.mapper = mapper;
+    public AWSController(
+            FilmePublisher filmePublisher,
+            PessoaPublisher pessoaPublisher,
+            GeneroPublisher generoPublisher,
+            AvaliacaoPublisher avaliacaoPublisher,
+            FilmePessoaPublisher filmePessoaPublisher,
+            UsuarioPublisher usuarioPublisher
+    ) {
+        this.filmePublisher = filmePublisher;
+        this.pessoaPublisher = pessoaPublisher;
+        this.generoPublisher = generoPublisher;
+        this.avaliacaoPublisher = avaliacaoPublisher;
+        this.filmePessoaPublisher = filmePessoaPublisher;
+        this.usuarioPublisher = usuarioPublisher;
     }
 
     // ---------------- FILME ----------------
@@ -41,34 +58,27 @@ public class AWSController {
     @PostMapping("/filme/cadastrar")
     @Transactional
     public ResponseEntity<String> enviarCadastrarFilme(@RequestBody @Valid DadosCadastrarFilme dados) {
-        JsonNode node = mapper.valueToTree(dados);
-        var dto = new AcaoMensagemDTO("FILME", AcaoMensagem.CADASTRAR, node, null, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.status(201).body("Mensagem CADASTRAR FILME enviada ao SQS");
+        filmePublisher.publicarCadastrar(dados);
+        return ResponseEntity.status(201).body("Solicitação de cadastro de filme enviada.");
     }
 
     @PutMapping("/filme/alterar")
     @Transactional
     public ResponseEntity<String> enviarAlterarFilme(@RequestBody @Valid DadosAlterarFilme dados) {
-        JsonNode node = mapper.valueToTree(dados);
-        var dto = new AcaoMensagemDTO("FILME", AcaoMensagem.ALTERAR, node, dados.id(), null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem ALTERAR FILME enviada ao SQS");
+        filmePublisher.publicarAlterar(dados);
+        return ResponseEntity.ok("Solicitação de alteração de filme enviada.");
     }
 
     @PostMapping("/filme/atualizar-popularidade/{id}")
     public ResponseEntity<String> enviarAtualizarPopularidade(@PathVariable Integer id) {
-        var dto = new AcaoMensagemDTO("FILME", AcaoMensagem.ATUALIZAR_POPULARIDADE, null, id, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem ATUALIZAR_POPULARIDADE enviada ao SQS");
+        filmePublisher.publicarAtualizarPopularidade(id);
+        return ResponseEntity.ok("Solicitação de atualização de popularidade enviada.");
     }
 
     @PostMapping("/filme/importar/{pagina}")
     public ResponseEntity<String> enviarImportarFilme(@PathVariable Integer pagina) {
-        JsonNode node = mapper.valueToTree(pagina);
-        var dto = new AcaoMensagemDTO("FILME", AcaoMensagem.IMPORTAR_DA_API, node, null, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.status(201).body("Mensagem IMPORTAR_DA_API enviada ao SQS — página: " + pagina);
+        filmePublisher.publicarImportarDaApi(pagina);
+        return ResponseEntity.status(201).body("Solicitação de importação de filmes enviada.");
     }
 
     // ---------------- PESSOA ----------------
@@ -76,19 +86,15 @@ public class AWSController {
     @PostMapping("/pessoa/cadastrar")
     @Transactional
     public ResponseEntity<String> enviarCadastrarPessoa(@RequestBody @Valid DadosCadastroPessoa dados) {
-        JsonNode node = mapper.valueToTree(dados);
-        var dto = new AcaoMensagemDTO("PESSOA", AcaoMensagem.CADASTRAR, node, null, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.status(201).body("Mensagem CADASTRAR PESSOA enviada ao SQS");
+        pessoaPublisher.publicarAdicionar(dados);
+        return ResponseEntity.status(201).body("Solicitação de cadastro de pessoa enviada.");
     }
 
     @PutMapping("/pessoa/alterar")
     @Transactional
     public ResponseEntity<String> enviarAlterarPessoa(@RequestBody @Valid DadosAlterarPessoa dados) {
-        JsonNode node = mapper.valueToTree(dados);
-        var dto = new AcaoMensagemDTO("PESSOA", AcaoMensagem.EDITAR, node, null, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem EDITAR PESSOA enviada ao SQS");
+        pessoaPublisher.publicarEditar(dados);
+        return ResponseEntity.ok("Solicitação de alteração de pessoa enviada.");
     }
 
     // ---------------- GÊNERO ----------------
@@ -96,26 +102,21 @@ public class AWSController {
     @PostMapping("/genero/adicionar")
     @Transactional
     public ResponseEntity<String> enviarAdicionarGenero(@RequestBody @Valid DadosCadastrarGenero dados) {
-        JsonNode node = mapper.valueToTree(dados);
-        var dto = new AcaoMensagemDTO("GENERO", AcaoMensagem.CADASTRAR, node, null, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.status(201).body("Mensagem CADASTRAR GÊNERO enviada ao SQS");
+        generoPublisher.publicarAdicionar(dados);
+        return ResponseEntity.status(201).body("Solicitação de cadastro de gênero enviada.");
     }
 
     @PutMapping("/genero/editar")
     @Transactional
     public ResponseEntity<String> enviarEditarGenero(@RequestBody @Valid DadosEditarGenero dados) {
-        JsonNode node = mapper.valueToTree(dados);
-        var dto = new AcaoMensagemDTO("GENERO", AcaoMensagem.EDITAR, node, null, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem EDITAR GÊNERO enviada ao SQS");
+        generoPublisher.publicarEditar(dados);
+        return ResponseEntity.ok("Solicitação de alteração de gênero enviada.");
     }
 
     @PostMapping("/genero/importar")
     public ResponseEntity<String> enviarImportarGeneros() {
-        var dto = new AcaoMensagemDTO("GENERO", AcaoMensagem.IMPORTAR_DA_API, null, null, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.status(201).body("Mensagem IMPORTAR GÊNEROS enviada ao SQS");
+        generoPublisher.publicarImportarDaApi();
+        return ResponseEntity.status(201).body("Solicitação de importação de gêneros enviada.");
     }
 
     // ---------------- AVALIAÇÃO ----------------
@@ -123,48 +124,40 @@ public class AWSController {
     @PostMapping("/avaliacao/cadastrar")
     @Transactional
     public ResponseEntity<String> enviarCadastrarAvaliacao(@RequestBody @Valid DadosCadastroAvaliacao dados) {
-        JsonNode node = mapper.valueToTree(dados);
-        var dto = new AcaoMensagemDTO("AVALIACAO", AcaoMensagem.CADASTRAR, node, null, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.status(201).body("Mensagem CADASTRAR AVALIAÇÃO enviada ao SQS");
+        avaliacaoPublisher.publicarCadastrar(dados);
+        return ResponseEntity.status(201).body("Solicitação de cadastro de avaliação enviada.");
     }
 
     @PutMapping("/avaliacao/alterar")
     @Transactional
     public ResponseEntity<String> enviarAlterarAvaliacao(@RequestBody @Valid DadosAlterarAvaliacao dados) {
-        JsonNode node = mapper.valueToTree(dados);
-        var dto = new AcaoMensagemDTO("AVALIACAO", AcaoMensagem.ALTERAR, node, null, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem ALTERAR AVALIAÇÃO enviada ao SQS");
+        avaliacaoPublisher.publicarAlterar(dados);
+        return ResponseEntity.ok("Solicitação de alteração de avaliação enviada.");
     }
 
     @DeleteMapping("/avaliacao/deletar/{id}")
     public ResponseEntity<String> enviarDeletarAvaliacao(@PathVariable Integer id) {
-        var dto = new AcaoMensagemDTO("AVALIACAO", AcaoMensagem.DELETAR, null, id, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem DELETAR AVALIAÇÃO enviada ao SQS");
+        avaliacaoPublisher.publicarDeletar(id);
+        return ResponseEntity.ok("Solicitação de exclusão de avaliação enviada.");
     }
 
     @GetMapping("/avaliacao/listar-usuario/{idUsuario}")
     public ResponseEntity<String> enviarListarAvaliacoesUsuario(@PathVariable Integer idUsuario) {
-        var dto = new AcaoMensagemDTO("AVALIACAO", AcaoMensagem.LISTAR_USUARIO, null, null, idUsuario, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem LISTAR_USUARIO enviada ao SQS");
+        avaliacaoPublisher.publicarListarUsuario(idUsuario);
+        return ResponseEntity.ok("Solicitação de listagem de avaliações do usuário enviada.");
     }
 
     @GetMapping("/avaliacao/listar-filme/{idFilme}")
     public ResponseEntity<String> enviarListarAvaliacoesFilme(@PathVariable Integer idFilme) {
-        var dto = new AcaoMensagemDTO("AVALIACAO", AcaoMensagem.LISTAR_FILME, null, idFilme, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem LISTAR_FILME enviada ao SQS");
+        avaliacaoPublisher.publicarListarFilme(idFilme);
+        return ResponseEntity.ok("Solicitação de listagem de avaliações do filme enviada.");
     }
 
     @GetMapping("/avaliacao/listar-unica")
     public ResponseEntity<String> enviarListarAvaliacaoUnica(@RequestParam Integer idFilme,
                                                              @RequestParam Integer idUsuario) {
-        var dto = new AcaoMensagemDTO("AVALIACAO", AcaoMensagem.LISTAR_UNICA, null, idFilme, idUsuario, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem LISTAR_UNICA enviada ao SQS");
+        avaliacaoPublisher.publicarListarUnica(idFilme, idUsuario);
+        return ResponseEntity.ok("Solicitação de listagem de avaliação específica enviada.");
     }
 
     // ---------------- FILME_PESSOA ----------------
@@ -172,27 +165,22 @@ public class AWSController {
     @PostMapping("/filme-pessoa/adicionar")
     @Transactional
     public ResponseEntity<String> enviarAdicionarFilmePessoa(@RequestBody @Valid DadosCadastroFilmePessoa dados) {
-        JsonNode node = mapper.valueToTree(dados);
-        var dto = new AcaoMensagemDTO("FILME_PESSOA", AcaoMensagem.ADICIONAR, node, dados.id_filme(), null, dados.id_pessoa());
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.status(201).body("Mensagem ADICIONAR FILME_PESSOA enviada ao SQS");
+        filmePessoaPublisher.publicarAdicionar(dados);
+        return ResponseEntity.status(201).body("Solicitação de vínculo filme-pessoa enviada.");
     }
 
     @PutMapping("/filme-pessoa/alterar")
     @Transactional
     public ResponseEntity<String> enviarAlterarFilmePessoa(@RequestBody @Valid DadosAlterarFilmePessoa dados) {
-        JsonNode node = mapper.valueToTree(dados);
-        var dto = new AcaoMensagemDTO("FILME_PESSOA", AcaoMensagem.ALTERAR, node, dados.id().getFilmeId(), null, dados.id().getPessoaId());
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem ALTERAR FILME_PESSOA enviada ao SQS");
+        filmePessoaPublisher.publicarAlterar(dados);
+        return ResponseEntity.ok("Solicitação de alteração de vínculo filme-pessoa enviada.");
     }
 
     @DeleteMapping("/filme-pessoa/deletar")
     public ResponseEntity<String> enviarDeletarFilmePessoa(@RequestParam Integer idFilme,
                                                            @RequestParam Integer idPessoa) {
-        var dto = new AcaoMensagemDTO("FILME_PESSOA", AcaoMensagem.DELETAR, null, idFilme, null, idPessoa);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem DELETAR FILME_PESSOA enviada ao SQS");
+        filmePessoaPublisher.publicarDeletar(idFilme, idPessoa);
+        return ResponseEntity.ok("Solicitação de exclusão de vínculo filme-pessoa enviada.");
     }
 
     // ---------------- USUÁRIO ----------------
@@ -200,50 +188,26 @@ public class AWSController {
     @PostMapping("/usuario/cadastrar")
     @Transactional
     public ResponseEntity<String> enviarCadastrarUsuario(@RequestBody @Valid DadosCadastrarUsuario dados) {
-        JsonNode node = mapper.valueToTree(dados);
-        var dto = new AcaoMensagemDTO("USUARIO", AcaoMensagem.CADASTRAR, node, null, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.status(201).body("Mensagem CADASTRAR USUÁRIO enviada ao SQS");
+        usuarioPublisher.publicarCadastrar(dados);
+        return ResponseEntity.status(201).body("Solicitação de cadastro de usuário enviada.");
     }
 
     @PutMapping("/usuario/alterar")
     @Transactional
     public ResponseEntity<String> enviarAlterarUsuario(@RequestBody @Valid DadosEditarUsuario dados) {
-        JsonNode node = mapper.valueToTree(dados);
-        var dto = new AcaoMensagemDTO("USUARIO", AcaoMensagem.EDITAR, node, null, dados.id(), null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem EDITAR USUÁRIO enviada ao SQS");
+        usuarioPublisher.publicarAlterar(dados);
+        return ResponseEntity.ok("Solicitação de alteração de usuário enviada.");
     }
 
     @PostMapping("/usuario/desativar/{id}")
     public ResponseEntity<String> enviarDesativarUsuario(@PathVariable Integer id) {
-        var dto = new AcaoMensagemDTO("USUARIO", AcaoMensagem.DELETAR, null, null, id, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem DESATIVAR USUÁRIO enviada ao SQS");
+        usuarioPublisher.publicarDesativar(id);
+        return ResponseEntity.ok("Solicitação de desativação de usuário enviada.");
     }
 
     @GetMapping("/usuario/listar")
     public ResponseEntity<String> enviarListarUsuarios() {
-        var dto = new AcaoMensagemDTO("USUARIO", AcaoMensagem.LISTAR_USUARIO, null, null, null, null);
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.ok("Mensagem LISTAR_USUARIO enviada ao SQS");
-    }
-
-    // ---------------- UTILS (texto/JSON genérico) ----------------
-
-    // Envia texto puro para a fila
-    @PostMapping("/enviar")
-    @Transactional
-    public ResponseEntity<String> enviarMensagemSimples(@RequestBody @Valid String mensagem) {
-        mensagemSqsService.enviarMensagem(mensagem);
-        return ResponseEntity.status(201).body("Mensagem enviada para o SQS com sucesso!");
-    }
-
-    // Envia um objeto JSON qualquer (p.ex.: para testes)
-    @PostMapping("/enviar-json")
-    @Transactional
-    public ResponseEntity<String> enviarMensagemJson(@RequestBody Object dto) {
-        mensagemSqsService.enviarMensagem(dto);
-        return ResponseEntity.status(201).body("JSON enviado para o SQS com sucesso!");
+        usuarioPublisher.publicarListar();
+        return ResponseEntity.ok("Solicitação de listagem de usuários enviada.");
     }
 }

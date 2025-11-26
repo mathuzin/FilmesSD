@@ -19,6 +19,7 @@ import com.example.filme.domain.usuario.UsuarioService;
 
 import com.example.filme.domain.usuario.dtos.DadosEditarUsuario;
 import com.example.filme.infra.aws.dtos.AcaoMensagemDTO;
+import com.example.filme.infra.aws.dtos.SnsEnvelope;
 import com.example.filme.infra.aws.enums.AcaoMensagem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -55,7 +56,11 @@ public class AwsConsumer {
     @SqsListener("${aws.sqs.queue-url}")
     public void receberMensagem(String mensagemJson) {
         try {
-            var dto = objectMapper.readValue(mensagemJson, AcaoMensagemDTO.class);
+            SnsEnvelope envelope = objectMapper.readValue(mensagemJson, SnsEnvelope.class);
+
+            String mensagemReal = envelope.Message();
+
+            AcaoMensagemDTO dto = objectMapper.readValue(mensagemReal, AcaoMensagemDTO.class);
 
             String entidade = dto.entidade();
             AcaoMensagem acao = dto.acao();
@@ -72,9 +77,8 @@ public class AwsConsumer {
             }
 
         } catch (Exception e) {
-            System.err.println("Erro ao processar mensagem SQS:");
+            System.err.println("Erro ao processar mensagem SQS");
             e.printStackTrace();
-            // Se lançar exceção aqui, SQS fará retry conforme configuração de visibilidade / DLQ
             throw new RuntimeException(e);
         }
     }

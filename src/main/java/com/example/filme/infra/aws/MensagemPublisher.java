@@ -31,6 +31,7 @@ public class MensagemPublisher {
                     .build());
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Erro ao publicar SNS", e);
         }
     }
